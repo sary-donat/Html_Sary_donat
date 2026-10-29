@@ -10,8 +10,8 @@ async Task<string> Load(string url)
     return html;
 }
 var html = await Load("https://malkabruk.co.il/practicode");
-var cleanHtml = new Regex("\\s").Replace(html, "");
-var htmlLines=new Regex("<(.*?)>").Split(cleanHtml).Where(s=>s.Length>0);
+var cleanHtml = new Regex("\\s+").Replace(html, " ");
+var htmlLines = new Regex("<(.*?)>").Split(cleanHtml).Where(s => !string.IsNullOrWhiteSpace(s));
 var root = new HtmlElement { Name = "root" };
 var current = root;
 foreach (var line in htmlLines)
@@ -53,9 +53,15 @@ foreach (var line in htmlLines)
         bool isSelfClosing = line.EndsWith("/") || HtmlHelper.Instance.HtmlVoidTags.Contains(tagName);
         if (!isSelfClosing)
             current = element;
-        else
-        {
-            current.InnerHtml += line;
-        }
+        
+    }
+    else
+    {
+        current.InnerHtml += line;
     }
 }
+var selector = Selector.Parse("div p");
+var results = root.FindElements(selector);
+Console.WriteLine($"Found {results.Count()} elements");
+foreach (var el in results)
+    Console.WriteLine($"<{el.Name}> id={el.Id} classes={string.Join(",", el.Classes)}");
